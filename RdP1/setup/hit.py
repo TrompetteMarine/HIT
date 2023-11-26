@@ -50,6 +50,7 @@ hitenv_jitspecs = [
     ('quantities', types.ListType(types.int64)),
     ('queue', types.optional(types.List(types.int64))),
     ('players', types.ListType(player_type)),
+    ('remaining_cards', types.DictType(types.int64, types.int64)),
 ]
 
 
@@ -62,6 +63,7 @@ class HitEnvironment:
         self.quantities = quantities
         self.queue = None
         self.players = typed.List.empty_list(player_type)
+        self.remaining_cards = typed.Dict.empty(types.int64, types.int64)
 
     def init_players(self, n):
         for _ in range(n):
@@ -69,11 +71,20 @@ class HitEnvironment:
 
     def draw(self):
         if self.queue:
-            return self.queue.pop()
+            card = self.queue.pop()
+            self.remaining_cards[card] -= 1
+            return card
         raise StopIteration
     
     def make_queue(self):
+        for i, quantity in zip(self.list_of_lists, self.quantities):
+            for n in l:
+                self.remaining_cards[n] = quantity
+                for _ in range(quantity):
+                    self.queue.append(n)
+
         self.queue = [n for l, quantitiy in zip(self.list_of_lists, self.quantities) for n in l for i in range(quantitiy)]
+        self.remaining_cards
     
     def shuffle_queue(self):
         a = np.arange(len(self.queue))
